@@ -374,7 +374,7 @@ const Navigate = () => {
             
             {/* Copyright */}
             <div className="text-center text-xs text-gray-400">
-              © 2024 Carbon Compass Inc.
+              © 2025 Carbon Compass Inc.
             </div>
           </div>
         </aside>
