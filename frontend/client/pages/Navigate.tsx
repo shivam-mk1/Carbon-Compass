@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import Navigation from '@/components/Navigation';
 
 // Custom hook for Google Maps
@@ -109,15 +110,15 @@ const Modal = ({ isOpen, onClose, title, children }: {
 };
 
 // Metrics Content Component
-const MetricsContent = () => (
+const MetricsContent = ({ metrics }: { metrics: any }) => (
   <div className="space-y-6">
     {[
-      { label: 'PM 2.5', value: '45 µg/m³', width: 45 },
-      { label: 'PM 10', value: '78 µg/m³', width: 78 },
-      { label: 'NOx', value: '12 ppb', width: 12 },
-      { label: 'CO', value: '3 ppm', width: 30 },
-      { label: 'Ozone (O₃)', value: '65 ppb', width: 65 },
-      { label: 'SO₂', value: '5 ppb', width: 5 }
+      { label: 'PM 2.5', value: `${metrics.pm2_5} µg/m³`, width: metrics.pm2_5 },
+      { label: 'PM 10', value: `${metrics.pm10} µg/m³`, width: metrics.pm10 },
+      { label: 'NOx', value: `${metrics.nox} ppb`, width: metrics.nox },
+      { label: 'CO', value: `${metrics.co} ppm`, width: metrics.co * 10 }, // Assuming CO is 0-10 range for width
+      { label: 'Ozone (O₃)', value: `${metrics.ozone} ppb`, width: metrics.ozone },
+      { label: 'SO₂', value: `${metrics.so2} ppb`, width: metrics.so2 * 10 } // Assuming SO2 is 0-10 range for width
     ].map((metric, index) => (
       <div key={index} className="space-y-2">
         <div className="flex justify-between items-center">
@@ -136,15 +137,31 @@ const MetricsContent = () => (
 );
 
 // Predictions Content Component
-const PredictionsContent = () => (
+const PredictionsContent = ({ data }: { data: any }) => (
   <div className="text-gray-300 space-y-4">
-    <p><strong className="text-lime">Predicted Carbon Density:</strong> 350 tons/km²</p>
+    <p><strong className="text-lime">Predicted Carbon Density:</strong> {data.datasets[0].data[data.datasets[0].data.length - 1]} tons/km²</p>
     <div>
       <p className="text-lime font-semibold mb-3">Future Projections:</p>
-      <ul className="space-y-2 ml-4">
-        <li><strong className="text-electric">2026:</strong> 365 tons/km² (without intervention)</li>
-        <li><strong className="text-electric">2030:</strong> 410 tons/km² (without intervention)</li>
-      </ul>
+      <div style={{ width: '100%', height: 300 }}>
+        <ResponsiveContainer>
+          <LineChart
+            data={data.labels.map((label: string, index: number) => ({ name: label, 'Carbon Density': data.datasets[0].data[index] }))}
+            margin={{
+              top: 5,
+              right: 30,
+              left: 20,
+              bottom: 5,
+            }}
+          >
+            <CartesianGrid strokeDasharray="3 3" stroke="#4a4a4a" />
+            <XAxis dataKey="name" stroke="#e6edf3" />
+            <YAxis stroke="#e6edf3" />
+            <Tooltip contentStyle={{ backgroundColor: '#1a1a1a', border: 'none' }} itemStyle={{ color: '#e6edf3' }} />
+            <Legend />
+            <Line type="monotone" dataKey="Carbon Density" stroke="#7dd956" activeDot={{ r: 8 }} />
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
     </div>
     <p className="bg-red-900/20 border border-red-500/30 rounded-lg p-4 text-sm">
       These projections are based on current traffic, energy consumption, and population growth trends. 
@@ -154,25 +171,15 @@ const PredictionsContent = () => (
 );
 
 // Suggestions Content Component
-const SuggestionsContent = () => (
+const SuggestionsContent = ({ policies }: { policies: string[] }) => (
   <div className="text-gray-300 space-y-4">
     <p className="text-lime font-semibold">Based on our analysis, here are key policy recommendations to combat urban carbon emissions:</p>
     <ul className="space-y-4">
-      <li className="bg-emerald-deep/30 rounded-lg p-4 border border-lime/20">
-        <strong className="text-lime">Enhance Urban Green Spaces:</strong> Implement a city-wide initiative to plant 10,000 trees annually, focusing on high-density areas to maximize carbon sequestration.
-      </li>
-      <li className="bg-emerald-deep/30 rounded-lg p-4 border border-electric/20">
-        <strong className="text-electric">Promote Sustainable Transportation:</strong> Invest in a new electric bus fleet and expand dedicated cycling infrastructure by 50% over the next five years.
-      </li>
-      <li className="bg-emerald-deep/30 rounded-lg p-4 border border-lime/20">
-        <strong className="text-lime">Optimize Building Energy Efficiency:</strong> Launch a public-private partnership to offer incentives for smart grid technologies and energy-saving retrofits in commercial buildings.
-      </li>
-      <li className="bg-emerald-deep/30 rounded-lg p-4 border border-electric/20">
-        <strong className="text-electric">Implement Waste-to-Energy Systems:</strong> Construct a new facility to convert municipal solid waste into clean energy, reducing reliance on landfills and fossil fuels.
-      </li>
-      <li className="bg-emerald-deep/30 rounded-lg p-4 border border-lime/20">
-        <strong className="text-lime">Encourage Renewable Energy:</strong> Revise zoning laws to streamline the installation of residential solar panels and explore feasibility studies for a municipal wind energy project.
-      </li>
+      {policies.map((policy, index) => (
+        <li key={index} className="bg-emerald-deep/30 rounded-lg p-4 border border-lime/20">
+          {policy}
+        </li>
+      ))}
     </ul>
   </div>
 );
@@ -226,16 +233,37 @@ const Navigate = () => {
     setModalState({ isOpen: false, title: '', content: null });
   };
 
-  const handleMetricsClick = () => {
-    openModal('Performance Metrics', <MetricsContent />);
+  const handleMetricsClick = async () => {
+    try {
+      const response = await fetch('http://localhost:5000/api/metrics');
+      const data = await response.json();
+      openModal('Performance Metrics', <MetricsContent metrics={data} />);
+    } catch (error) {
+      console.error('Error fetching metrics:', error);
+      openModal('Performance Metrics', <p>Failed to load metrics. Please try again later.</p>);
+    }
   };
 
-  const handlePredictionsClick = () => {
-    openModal('Future Projections', <PredictionsContent />);
+  const handlePredictionsClick = async () => {
+    try {
+      const response = await fetch('http://localhost:5000/api/projections');
+      const data = await response.json();
+      openModal('Future Projections', <PredictionsContent data={data} />);
+    } catch (error) {
+      console.error('Error fetching projections:', error);
+      openModal('Future Projections', <p>Failed to load projections. Please try again later.</p>);
+    }
   };
 
-  const handleSuggestionsClick = () => {
-    openModal('Policy Recommendations', <SuggestionsContent />);
+  const handleSuggestionsClick = async () => {
+    try {
+      const response = await fetch('http://localhost:5000/api/policies');
+      const data = await response.json();
+      openModal('Policy Recommendations', <SuggestionsContent policies={data} />);
+    } catch (error) {
+      console.error('Error fetching policies:', error);
+      openModal('Policy Recommendations', <p>Failed to load policies. Please try again later.</p>);
+    }
   };
 
   return (
@@ -283,6 +311,14 @@ const Navigate = () => {
                 <span>Lng: {coordinates.lng}</span>
               </div>
             </div>
+            
+            <button 
+              className="w-full flex items-center justify-center gap-2 p-3 rounded-lg bg-lime/80 hover:bg-lime text-emerald-deep font-semibold transition-colors duration-300"
+              onClick={() => { handleMetricsClick(); handlePredictionsClick(); }}
+            >
+              <span className="material-icons">send</span>
+              <span>Get Data</span>
+            </button>
             
             {/* Copyright */}
             <div className="text-center text-xs text-gray-400">

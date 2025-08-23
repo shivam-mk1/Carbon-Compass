@@ -25,6 +25,7 @@ import {
   Star
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 // Animated counter component
 const AnimatedCounter = ({ end, duration = 2000, suffix = "" }: { end: number; duration?: number; suffix?: string }) => {
@@ -160,6 +161,7 @@ export default function Index() {
   const [currentMetric, setCurrentMetric] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
   const [compassBearing, setCompassBearing] = useState(45);
+  const navigate = useNavigate();
   
   const keyMetrics = [
     { value: 2847, label: "Current Emission Coordinates", color: "text-red-400", bearing: "SW" },
@@ -224,30 +226,11 @@ export default function Index() {
           </p>
           
           <div className="text-2xl md:text-3xl text-electric mb-8 font-bold">
-            <span className="hindi-english">Emission Ka Commission</span> ✨
+            <span className="hindi-english">Emission Ka Commission</span> 💸
           </div>
+        
           
-          {/* Compass-style Metrics Display */}
-          <div className="grid md:grid-cols-3 gap-8 mb-8 max-w-4xl mx-auto">
-            {keyMetrics.map((metric, index) => (
-              <div
-                key={index}
-                className={`glass rounded-xl p-6 transform transition-all duration-500 flex flex-col items-center ${
-                  currentMetric === index ? 'scale-105 border-lime/50' : 'scale-100'
-                }`}
-              >
-                <div className="mb-4 flex justify-center">
-                  <CompassProgress value={index === 1 ? metric.value : Math.min((metric.value / 50), 100)} label="" bearing={metric.bearing || "N"} />
-                </div>
-                <div className={`text-2xl font-bold font-mono mb-2 ${metric.color}`}>
-                  <AnimatedCounter end={metric.value} suffix={metric.suffix || ""} />
-                </div>
-                <div className="text-sm text-gray-300 text-center">{metric.label}</div>
-              </div>
-            ))}
-          </div>
-          
-          <button className="group bg-lime hover:bg-lime/90 text-emerald-deep font-bold py-4 px-8 text-lg rounded-lg transition-all duration-300 hover:scale-105 animate-pulse-glow inline-flex items-center gap-2 font-montserrat">
+          <button onClick={() => navigate('/navigate')} className="group bg-lime hover:bg-lime/90 text-emerald-deep font-bold py-4 px-8 text-lg rounded-lg transition-all duration-300 hover:scale-105 animate-pulse-glow inline-flex items-center gap-2 font-montserrat">
             Start Navigation
             <CompassIcon className="h-5 w-5 group-hover:rotate-12 transition-transform duration-300" />
           </button>
@@ -453,246 +436,7 @@ export default function Index() {
         </div>
       </section>
 
-      {/* Dashboard Preview Section */}
-      <section id="monitor" className="py-20 lg:py-32 bg-emerald-deep/30">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold font-montserrat mb-6">
-              Your <span className="text-electric">Navigation Center</span> for <span className="text-lime">Carbon Management</span>
-            </h2>
-            <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-              Compass-inspired interface designed for navigating urban carbon reduction strategies.
-            </p>
-          </div>
-          
-          {/* Dashboard Mockup */}
-          <div className="glass rounded-2xl p-8 max-w-6xl mx-auto">
-            <div className="grid lg:grid-cols-3 gap-6 h-96">
-              {/* Left Panel - Navigation Menu */}
-              <div className="bg-emerald-deep/50 rounded-xl p-4 border border-lime/30">
-                <h4 className="text-lime font-semibold mb-4 flex items-center gap-2">
-                  <CompassIcon className="h-4 w-4" />
-                  Navigation Controls
-                </h4>
-                <div className="space-y-3">
-                  {['Dashboard', 'Navigate', 'Track', 'Guide', 'Coordinates'].map((item, index) => (
-                    <div key={item} className="flex items-center gap-3 p-2 rounded bg-emerald-deep/30 hover:bg-lime/10 transition-colors cursor-pointer">
-                      <span className="text-xs text-electric font-bold w-6">{['N', 'NE', 'E', 'SE', 'S'][index]}</span>
-                      <span className="text-sm text-white">{item}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              
-              {/* Center Panel - 3D Compass Map */}
-              <div className="bg-emerald-deep/50 rounded-xl p-4 border border-electric/30">
-                <h4 className="text-electric font-semibold mb-4 flex items-center gap-2">
-                  <Map className="h-4 w-4" />
-                  Emission Compass Map
-                </h4>
-                <div className="relative h-full bg-gradient-to-br from-red-900/20 to-emerald-900/20 rounded-lg overflow-hidden flex items-center justify-center">
-                  <CarbonCompass size="small" />
-                  {/* Emission hotspots */}
-                  <div className="absolute top-1/4 left-1/3 w-3 h-3 bg-red-500/60 rounded-full animate-pulse"></div>
-                  <div className="absolute top-1/2 right-1/4 w-2 h-2 bg-yellow-500/60 rounded-full animate-pulse" style={{ animationDelay: '0.5s' }}></div>
-                  <div className="absolute bottom-1/3 left-1/4 w-1 h-1 bg-lime/60 rounded-full animate-pulse" style={{ animationDelay: '1s' }}></div>
-                </div>
-              </div>
-              
-              {/* Right Panel - Commission Metrics */}
-              <div className="bg-emerald-deep/50 rounded-xl p-4 border border-lime/30">
-                <h4 className="text-lime font-semibold mb-4 flex items-center gap-2">
-                  <Award className="h-4 w-4" />
-                  Commission Progress
-                </h4>
-                <div className="space-y-4">
-                  <div>
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="text-sm text-gray-300">Carbon Commission</span>
-                      <span className="text-lime font-mono">23%</span>
-                    </div>
-                    <div className="w-full bg-gray-700 rounded-full h-2">
-                      <div className="bg-lime h-2 rounded-full w-1/4"></div>
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="text-sm text-gray-300">Navigation Accuracy</span>
-                      <span className="text-electric font-mono">95%</span>
-                    </div>
-                    <div className="w-full bg-gray-700 rounded-full h-2">
-                      <div className="bg-electric h-2 rounded-full w-5/6"></div>
-                    </div>
-                  </div>
-                  
-                  <div className="mt-4 p-3 bg-lime/10 rounded border border-lime/30">
-                    <div className="text-xs text-lime font-semibold">Next Bearing:</div>
-                    <div className="text-sm text-white">Optimize traffic flow (NE sector)</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Impact Metrics Section */}
-      <section id="insights" className="py-20 lg:py-32 network-bg">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8" id="metrics">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold font-montserrat mb-6">
-              Navigate to <span className="text-lime">Measurable Commission</span>
-            </h2>
-            <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-              Real compass bearings showing successful navigation toward carbon neutrality.
-            </p>
-          </div>
-          
-          {/* Compass-style Progress Indicators */}
-          <div className="grid md:grid-cols-4 gap-8 mb-16">
-            <div className="flex flex-col items-center text-center">
-              <CompassProgress value={78} label="Carbon Reduced" bearing="NE" />
-              <div className="mt-4">
-                <div className="text-2xl font-bold text-lime mb-1 font-mono">
-                  {isVisible && <AnimatedCounter end={2340000} />}
-                </div>
-                <div className="text-sm text-gray-300">Tons CO₂ Navigated Away</div>
-              </div>
-            </div>
-
-            <div className="flex flex-col items-center text-center">
-              <CompassProgress value={92} label="Cities Navigated" bearing="E" />
-              <div className="mt-4">
-                <div className="text-2xl font-bold text-electric mb-1 font-mono">
-                  {isVisible && <AnimatedCounter end={156} />}
-                </div>
-                <div className="text-sm text-gray-300">Cities on Course</div>
-              </div>
-            </div>
-
-            <div className="flex flex-col items-center text-center">
-              <CompassProgress value={95} label="Course Corrections" bearing="SE" />
-              <div className="mt-4">
-                <div className="text-2xl font-bold text-lime mb-1 font-mono">
-                  {isVisible && <AnimatedCounter end={98500} />}
-                </div>
-                <div className="text-sm text-gray-300">Navigation Adjustments</div>
-              </div>
-            </div>
-
-            <div className="flex flex-col items-center text-center">
-              <CompassProgress value={87} label="Green Routes" bearing="S" />
-              <div className="mt-4">
-                <div className="text-2xl font-bold text-electric mb-1 font-mono">
-                  {isVisible && <AnimatedCounter end={847} />}
-                </div>
-                <div className="text-sm text-gray-300">Sustainable Pathways</div>
-              </div>
-            </div>
-          </div>
-          
-          {/* Commission Achievement Badges */}
-          <div className="grid md:grid-cols-2 gap-8">
-            <div className="glass rounded-xl p-6 border border-lime/30">
-              <div className="flex items-center gap-3 mb-4">
-                <Award className="h-6 w-6 text-lime" />
-                <h4 className="text-xl font-bold font-montserrat">San Francisco Navigation</h4>
-                <span className="text-xs bg-lime/20 text-lime px-2 py-1 rounded">COMMISSION ACHIEVED</span>
-              </div>
-              <p className="text-gray-300 mb-3">
-                Successfully navigated 31% reduction in transportation emissions through AI-optimized compass guidance.
-              </p>
-              <div className="text-sm text-lime font-semibold">
-                Final Bearing: 450,000 tons CO₂ commission annually
-              </div>
-            </div>
-            
-            <div className="glass rounded-xl p-6 border border-electric/30">
-              <div className="flex items-center gap-3 mb-4">
-                <Award className="h-6 w-6 text-electric" />
-                <h4 className="text-xl font-bold font-montserrat">Amsterdam Route Completion</h4>
-                <span className="text-xs bg-electric/20 text-electric px-2 py-1 rounded">COMMISSION ACHIEVED</span>
-              </div>
-              <p className="text-gray-300 mb-3">
-                Reached carbon neutrality destination in city center through precision compass navigation and smart routing.
-              </p>
-              <div className="text-sm text-electric font-semibold">
-                Final Bearing: 100% renewable energy coordinates reached
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Final CTA Section */}
-      <section id="commission" className="py-20 lg:py-32 bg-emerald-deep relative overflow-hidden">
-        {/* Constellation Navigation Pattern */}
-        <div className="absolute inset-0">
-          {/* Star pattern suggesting navigation */}
-          {Array.from({ length: 50 }, (_, i) => (
-            <ConstellationStar 
-              key={i}
-              x={Math.random() * 100} 
-              y={Math.random() * 100} 
-              size={Math.random() * 3 + 1}
-              delay={Math.random() * 3}
-            />
-          ))}
-          
-          {/* Constellation lines forming compass directions */}
-          <svg className="absolute inset-0 w-full h-full opacity-30">
-            <line x1="50%" y1="10%" x2="50%" y2="90%" stroke="rgba(0, 212, 255, 0.4)" strokeWidth="1" strokeDasharray="5,5" />
-            <line x1="10%" y1="50%" x2="90%" y2="50%" stroke="rgba(0, 212, 255, 0.4)" strokeWidth="1" strokeDasharray="5,5" />
-            <line x1="20%" y1="20%" x2="80%" y2="80%" stroke="rgba(125, 217, 86, 0.4)" strokeWidth="1" strokeDasharray="5,5" />
-            <line x1="80%" y1="20%" x2="20%" y2="80%" stroke="rgba(125, 217, 86, 0.4)" strokeWidth="1" strokeDasharray="5,5" />
-          </svg>
-        </div>
-        
-        {/* Carbon Compass pointing toward "Sustainable Future" */}
-        <div className="absolute top-10 left-1/2 transform -translate-x-1/2 opacity-40">
-          <CarbonCompass size="large" />
-          <div className="text-center mt-4 text-lime font-bold text-sm">
-            → Carbon Neutrality
-          </div>
-        </div>
-        
-        <div className="relative z-10 max-w-4xl mx-auto px-6 lg:px-8 text-center">
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold font-montserrat mb-6 text-white">
-            Chart Your Course to <br />
-            <span className="text-lime">Carbon Neutrality</span>
-          </h2>
-          
-          <div className="text-2xl md:text-3xl text-electric mb-6 font-bold">
-            <span className="hindi-english">Emission Ka Commission</span> ✨
-          </div>
-          
-          <p className="text-xl md:text-2xl mb-8 text-gray-200 leading-relaxed">
-            Join 50+ cities using Carbon Compass to navigate emission reduction
-          </p>
-          
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-8">
-            <button className="bg-lime hover:bg-lime/90 text-emerald-deep font-bold py-4 px-8 text-lg rounded-lg transition-all duration-300 hover:scale-105 inline-flex items-center gap-2 font-montserrat group">
-              Start Your Journey
-              <CompassIcon className="h-5 w-5 group-hover:rotate-12 transition-transform duration-300" />
-            </button>
-            
-            <button className="bg-transparent border-2 border-electric text-electric hover:bg-electric hover:text-emerald-deep font-bold py-4 px-8 text-lg rounded-lg transition-all duration-300 hover:scale-105 inline-flex items-center gap-2 font-montserrat">
-              View Success Routes
-              <Map className="h-5 w-5" />
-            </button>
-          </div>
-          
-          <div className="flex items-center justify-center gap-4 text-sm text-gray-300">
-            <Star className="h-4 w-4 text-electric" />
-            <span>Trusted navigation by government agencies worldwide</span>
-            <Star className="h-4 w-4 text-lime" />
-            <span>Compass-certified accuracy</span>
-            <Star className="h-4 w-4 text-electric" />
-          </div>
-        </div>
-      </section>
-
+      
       {/* Footer */}
       <footer className="py-12 bg-black border-t border-lime/20">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
@@ -709,7 +453,7 @@ export default function Index() {
               </div>
             </div>
             <p className="text-gray-400 text-center md:text-right">
-              © 2024 Carbon Compass. Navigate toward sustainable cities.
+              © 2025 Carbon Compass. Navigate toward sustainable cities.
             </p>
           </div>
         </div>
