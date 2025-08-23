@@ -2,11 +2,23 @@ import React, { useState, useEffect, useRef } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import Navigation from '@/components/Navigation';
 
+// Type declarations for Google Maps
+declare global {
+  interface Window {
+    google: any;
+    initGoogleMaps: () => void;
+  }
+}
+
 // Custom hook for Google Maps
-const useGoogleMaps = (mapContainer: React.RefObject<HTMLDivElement>, apiKey: string, setSelectedCoordinates: React.Dispatch<React.SetStateAction<{ lat: string; lng: string; } | null>>) => {
-  const [map, setMap] = useState<google.maps.Map | null>(null);
+const useGoogleMaps = (
+  mapContainer: React.RefObject<HTMLDivElement>, 
+  apiKey: string, 
+  setSelectedCoordinates: React.Dispatch<React.SetStateAction<{ lat: string; lng: string; } | null>>
+) => {
+  const [map, setMap] = useState<any>(null);
   const [isLoaded, setIsLoaded] = useState(false);
-  const [selectedMarker, setSelectedMarker] = useState<google.maps.Marker | null>(null);
+  const [selectedMarker, setSelectedMarker] = useState<any>(null);
 
   useEffect(() => {
     // Check if Google Maps is already loaded
@@ -21,7 +33,7 @@ const useGoogleMaps = (mapContainer: React.RefObject<HTMLDivElement>, apiKey: st
     script.async = true;
     script.defer = true;
 
-    (window as any).initGoogleMaps = () => {
+    window.initGoogleMaps = () => {
       setIsLoaded(true);
     };
 
@@ -29,8 +41,8 @@ const useGoogleMaps = (mapContainer: React.RefObject<HTMLDivElement>, apiKey: st
 
     return () => {
       // Cleanup
-      if ((window as any).initGoogleMaps) {
-        delete (window as any).initGoogleMaps;
+      if (window.initGoogleMaps) {
+        delete window.initGoogleMaps;
       }
     };
   }, [apiKey]);
@@ -74,7 +86,7 @@ const useGoogleMaps = (mapContainer: React.RefObject<HTMLDivElement>, apiKey: st
       setMap(mapInstance);
 
       // Add click listener to the map
-      mapInstance.addListener('click', (event: google.maps.MapMouseEvent) => {
+      mapInstance.addListener('click', (event: any) => {
         if (event.latLng) {
           const lat = event.latLng.lat().toFixed(4);
           const lng = event.latLng.lng().toFixed(4);
@@ -247,7 +259,7 @@ const Navigate = () => {
   // Set up mouse move listener for coordinates
   useEffect(() => {
     if (map) {
-      const listener = map.addListener('mousemove', (event: google.maps.MapMouseEvent) => {
+      const listener = map.addListener('mousemove', (event: any) => {
         if (event.latLng) {
           const lat = event.latLng.lat().toFixed(4);
           const lng = event.latLng.lng().toFixed(4);

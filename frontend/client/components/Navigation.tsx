@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, Link } from 'react-router-dom';
 import { Menu, X, MapPin, AlertTriangle, Navigation as Compass } from 'lucide-react';
 
 const Navigation = () => {
@@ -100,9 +100,9 @@ const Navigation = () => {
                     return null; // Don't render Dashboard unless on /navigate route
                   }
                   return (
-                    <a
+                    <Link
                       key={item.name}
-                      href={item.href}
+                      to={item.href}
                       className="text-white hover:text-lime transition-colors duration-300 px-3 py-2 text-sm font-medium font-inter relative group"
                     >
                       {item.name}
