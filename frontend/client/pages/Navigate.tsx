@@ -291,7 +291,7 @@ const Navigate = () => {
 
   const handleSuggestionsClick = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/policies');
+      const response = await fetch('https://carbonescompass.vercel.app/api/policies');
       const data = await response.json();
       openModal('Policy Recommendations', <SuggestionsContent policies={data} />);
     } catch (error) {
@@ -353,11 +353,11 @@ const Navigate = () => {
               className="w-full flex items-center justify-center gap-2 p-3 rounded-lg bg-lime/80 hover:bg-lime text-emerald-deep font-semibold transition-colors duration-300"
               onClick={async () => {
                 try {
-                  const metricsResponse = await fetch('http://localhost:5000/api/metrics');
+                  const metricsResponse = await fetch('https://carbonescompass.vercel.app/api/metrics');
                   const metrics = await metricsResponse.json();
                   setMetricsData(metrics);
 
-                  const projectionsResponse = await fetch('http://localhost:5000/api/projections');
+                  const projectionsResponse = await fetch('https://carbonescompass.vercel.app/api/projections');
                   const projections = await projectionsResponse.json();
                   setProjectionsData(projections);
 
