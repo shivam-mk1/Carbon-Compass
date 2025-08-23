@@ -1,0 +1,201 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;700&family=Inter:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  /**
+   * Pandora's Paradox Dark Theme
+   * Custom color scheme for innovation platform
+  */
+  :root {
+    /* Primary dark theme - always dark */
+    --background: 0 0% 0%; /* Black background */
+    --foreground: 0 0% 100%; /* White text */
+
+    --card: 158 100% 8%; /* Deep emerald cards */
+    --card-foreground: 0 0% 100%;
+
+    --popover: 158 100% 8%;
+    --popover-foreground: 0 0% 100%;
+
+    --primary: 158 100% 19%; /* Deep emerald primary */
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 158 50% 12%; /* Darker emerald secondary */
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 158 30% 10%;
+    --muted-foreground: 0 0% 70%;
+
+    --accent: 75 100% 59%; /* Bright lime accent */
+    --accent-foreground: 158 100% 8%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 158 50% 15%;
+    --input: 158 50% 15%;
+    --ring: 75 100% 59%; /* Lime ring */
+
+    --radius: 0.5rem;
+
+    /* Sidebar colors */
+    --sidebar-background: 158 100% 6%;
+    --sidebar-foreground: 0 0% 90%;
+    --sidebar-primary: 75 100% 59%;
+    --sidebar-primary-foreground: 158 100% 8%;
+    --sidebar-accent: 158 50% 12%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 158 50% 15%;
+    --sidebar-ring: 75 100% 59%;
+
+    /* Custom Pandora's Paradox variables */
+    --electric-blue: 191 100% 50%; /* #00d4ff */
+    --lime-bright: 75 100% 59%; /* #7dd956 */
+    --emerald-deep: 158 100% 19%; /* #0d4f3c */
+  }
+
+  /* Light mode disabled - Pandora's Paradox uses dark theme only */
+  .light {
+    /* Same as root - always dark theme */
+    --background: 0 0% 0%;
+    --foreground: 0 0% 100%;
+    --card: 158 100% 8%;
+    --card-foreground: 0 0% 100%;
+    --popover: 158 100% 8%;
+    --popover-foreground: 0 0% 100%;
+    --primary: 158 100% 19%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 158 50% 12%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 158 30% 10%;
+    --muted-foreground: 0 0% 70%;
+    --accent: 75 100% 59%;
+    --accent-foreground: 158 100% 8%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 158 50% 15%;
+    --input: 158 50% 15%;
+    --ring: 75 100% 59%;
+  }
+
+  .dark {
+    /* Same as root - always dark theme */
+    --background: 0 0% 0%;
+    --foreground: 0 0% 100%;
+    --card: 158 100% 8%;
+    --card-foreground: 0 0% 100%;
+    --popover: 158 100% 8%;
+    --popover-foreground: 0 0% 100%;
+    --primary: 158 100% 19%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 158 50% 12%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 158 30% 10%;
+    --muted-foreground: 0 0% 70%;
+    --accent: 75 100% 59%;
+    --accent-foreground: 158 100% 8%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 158 50% 15%;
+    --input: 158 50% 15%;
+    --ring: 75 100% 59%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Inter', sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Montserrat', sans-serif;
+  }
+
+  /* Custom gradient backgrounds */
+  .gradient-dark {
+    background: linear-gradient(135deg, #0d4f3c 0%, #000000 100%);
+  }
+
+  .gradient-emerald {
+    background: linear-gradient(135deg, #0d4f3c 0%, #1a5f4a 100%);
+  }
+
+  /* Glassmorphism effect */
+  .glass {
+    background: rgba(13, 79, 60, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  /* Network animation background */
+  .network-bg {
+    background-image: radial-gradient(circle at 25% 25%, rgba(125, 217, 86, 0.1) 0%, transparent 50%),
+                      radial-gradient(circle at 75% 75%, rgba(0, 212, 255, 0.1) 0%, transparent 50%);
+  }
+
+  /* Scroll behavior */
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: rgba(13, 79, 60, 0.2);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: rgba(125, 217, 86, 0.6);
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(125, 217, 86, 0.8);
+  }
+}
+
+@layer utilities {
+  .text-electric {
+    color: hsl(var(--electric-blue));
+  }
+  
+  .text-lime {
+    color: hsl(var(--lime-bright));
+  }
+  
+  .text-emerald-deep {
+    color: hsl(var(--emerald-deep));
+  }
+  
+  .bg-electric {
+    background-color: hsl(var(--electric-blue));
+  }
+  
+  .bg-lime {
+    background-color: hsl(var(--lime-bright));
+  }
+  
+  .bg-emerald-deep {
+    background-color: hsl(var(--emerald-deep));
+  }
+
+  .hindi-english {
+    background: linear-gradient(45deg, #7dd956, #00d4ff);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 600;
+    text-shadow: 0 0 20px rgba(125, 217, 86, 0.3);
+  }
+}
