@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useLocation, Link } from 'react-router-dom';
+import { useLocation, Link, useNavigate } from 'react-router-dom';
 import { Menu, X, MapPin, AlertTriangle, Navigation as Compass } from 'lucide-react';
 
 const Navigation = () => {
@@ -8,6 +8,7 @@ const Navigation = () => {
   const [selectedCity, setSelectedCity] = useState('San Francisco');
   const [carbonEmission, setCarbonEmission] = useState(2847);
   const [compassRotation, setCompassRotation] = useState(0);
+  const navigate = useNavigate(); // Initialize useNavigate
 
   useEffect(() => {
     const handleScroll = () => {
@@ -103,6 +104,21 @@ const Navigation = () => {
                     <Link
                       key={item.name}
                       to={item.href}
+                      onClick={(e) => {
+                        if (item.href.startsWith('#')) {
+                          e.preventDefault(); // Prevent default Link behavior for hash links
+                          const targetId = item.href.substring(1);
+                          if (location.pathname !== '/') {
+                            navigate('/'); // Navigate to home page
+                            // Use a timeout to ensure navigation completes before scrolling
+                            setTimeout(() => {
+                              document.getElementById(targetId)?.scrollIntoView({ behavior: 'smooth' });
+                            }, 100);
+                          } else {
+                            document.getElementById(targetId)?.scrollIntoView({ behavior: 'smooth' });
+                          }
+                        }
+                      }}
                       className="text-white hover:text-lime transition-colors duration-300 px-3 py-2 text-sm font-medium font-inter relative group"
                     >
                       {item.name}
@@ -150,7 +166,22 @@ const Navigation = () => {
                     <Link
                       key={item.name}
                       to={item.href}
-                      onClick={() => setIsMobileMenuOpen(false)}
+                      onClick={(e) => {
+                        setIsMobileMenuOpen(false); // Close mobile menu
+                        if (item.href.startsWith('#')) {
+                          e.preventDefault(); // Prevent default Link behavior for hash links
+                          const targetId = item.href.substring(1);
+                          if (location.pathname !== '/') {
+                            navigate('/'); // Navigate to home page
+                            // Use a timeout to ensure navigation completes before scrolling
+                            setTimeout(() => {
+                              document.getElementById(targetId)?.scrollIntoView({ behavior: 'smooth' });
+                            }, 100);
+                          } else {
+                            document.getElementById(targetId)?.scrollIntoView({ behavior: 'smooth' });
+                          }
+                        }
+                      }}
                       className="text-white hover:text-lime hover:bg-emerald-deep/50 block px-3 py-2 text-base font-medium font-inter transition-colors duration-300 flex items-center gap-2"
                     >
                       <span className="text-xs text-electric w-6">{['N', 'NE', 'E', 'SE', 'S'][index]}</span>
