@@ -3,9 +3,10 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsi
 import Navigation from '@/components/Navigation';
 
 // Custom hook for Google Maps
-const useGoogleMaps = (mapContainer: React.RefObject<HTMLDivElement>, apiKey: string) => {
+const useGoogleMaps = (mapContainer: React.RefObject<HTMLDivElement>, apiKey: string, setSelectedCoordinates: React.Dispatch<React.SetStateAction<{ lat: string; lng: string; } | null>>) => {
   const [map, setMap] = useState<google.maps.Map | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [selectedMarker, setSelectedMarker] = useState<google.maps.Marker | null>(null);
 
   useEffect(() => {
     // Check if Google Maps is already loaded
@@ -71,8 +72,37 @@ const useGoogleMaps = (mapContainer: React.RefObject<HTMLDivElement>, apiKey: st
       });
 
       setMap(mapInstance);
+
+      // Add click listener to the map
+      mapInstance.addListener('click', (event: google.maps.MapMouseEvent) => {
+        if (event.latLng) {
+          const lat = event.latLng.lat().toFixed(4);
+          const lng = event.latLng.lng().toFixed(4);
+          setSelectedCoordinates({ lat, lng });
+
+          // Remove previous selected marker if exists
+          if (selectedMarker) {
+            selectedMarker.setMap(null);
+          }
+
+          // Add new selected marker
+          const newMarker = new window.google.maps.Marker({
+            position: event.latLng,
+            map: mapInstance,
+            title: `Selected: ${lat}, ${lng}`,
+            icon: {
+              path: window.google.maps.SymbolPath.CIRCLE,
+              fillColor: 'blue',
+              fillOpacity: 0.8,
+              strokeWeight: 0,
+              scale: 10
+            }
+          });
+          setSelectedMarker(newMarker);
+        }
+      });
     }
-  }, [isLoaded, mapContainer, map]);
+  }, [isLoaded, mapContainer, map, setSelectedCoordinates, selectedMarker]);
 
   return { map, isLoaded };
 };
@@ -185,14 +215,16 @@ const SuggestionsContent = ({ policies }: { policies: string[] }) => (
 );
 
 // Navigation Item Component
-const NavItem = ({ icon, text, onClick }: {
+const NavItem = ({ icon, text, onClick, disabled }: {
   icon: string;
   text: string;
   onClick: () => void;
+  disabled?: boolean;
 }) => (
   <button 
-    className="w-full flex items-center gap-4 p-4 rounded-lg bg-emerald-deep/30 border border-lime/20 hover:bg-lime/10 hover:border-lime/40 transition-all duration-300 text-white hover:text-lime group backdrop-blur-sm"
+    className={`w-full flex items-center gap-4 p-4 rounded-lg bg-emerald-deep/30 border border-lime/20 transition-all duration-300 text-white backdrop-blur-sm ${disabled ? 'opacity-50 cursor-not-allowed' : 'hover:bg-lime/10 hover:border-lime/40 hover:text-lime group'}`}
     onClick={onClick}
+    disabled={disabled}
   >
     <span className="text-2xl">{icon}</span>
     <span className="font-medium">{text}</span>
@@ -202,11 +234,15 @@ const NavItem = ({ icon, text, onClick }: {
 // Main Navigate Component
 const Navigate = () => {
   const [modalState, setModalState] = useState({ isOpen: false, title: '', content: null });
-  const [coordinates, setCoordinates] = useState({ lat: '20.27', lng: '85.84' });
+  const [coordinates, setCoordinates] = useState({ lat: '20.27', lng: '85.84' }); // Hovered coordinates
+  const [selectedCoordinates, setSelectedCoordinates] = useState<{ lat: string; lng: string } | null>(null); // Clicked coordinates
+  const [dataReceived, setDataReceived] = useState(false);
+  const [metricsData, setMetricsData] = useState<any>(null);
+  const [projectionsData, setProjectionsData] = useState<any>(null);
   const mapContainer = useRef<HTMLDivElement>(null);
   
   const apiKey = 'AIzaSyDbdQ4kTlWVcrMLQNf1gbyi0nxi4ap8NkE';
-  const { map } = useGoogleMaps(mapContainer, apiKey);
+  const { map } = useGoogleMaps(mapContainer, apiKey, setSelectedCoordinates);
 
   // Set up mouse move listener for coordinates
   useEffect(() => {
@@ -233,26 +269,12 @@ const Navigate = () => {
     setModalState({ isOpen: false, title: '', content: null });
   };
 
-  const handleMetricsClick = async () => {
-    try {
-      const response = await fetch('http://localhost:5000/api/metrics');
-      const data = await response.json();
-      openModal('Performance Metrics', <MetricsContent metrics={data} />);
-    } catch (error) {
-      console.error('Error fetching metrics:', error);
-      openModal('Performance Metrics', <p>Failed to load metrics. Please try again later.</p>);
-    }
+  const handleMetricsClick = () => {
+    openModal('Performance Metrics', <MetricsContent metrics={metricsData} />);
   };
 
-  const handlePredictionsClick = async () => {
-    try {
-      const response = await fetch('http://localhost:5000/api/projections');
-      const data = await response.json();
-      openModal('Future Projections', <PredictionsContent data={data} />);
-    } catch (error) {
-      console.error('Error fetching projections:', error);
-      openModal('Future Projections', <p>Failed to load projections. Please try again later.</p>);
-    }
+  const handlePredictionsClick = () => {
+    openModal('Future Projections', <PredictionsContent data={projectionsData} />);
   };
 
   const handleSuggestionsClick = async () => {
@@ -288,16 +310,19 @@ const Navigate = () => {
                 icon="📊"
                 text="Performance Metrics"
                 onClick={handleMetricsClick}
+                disabled={!dataReceived}
               />
               <NavItem
                 icon="🔮"
                 text="Future Projections"
                 onClick={handlePredictionsClick}
+                disabled={!dataReceived}
               />
               <NavItem
                 icon="💡"
                 text="Policy Recommendations"
                 onClick={handleSuggestionsClick}
+                disabled={!dataReceived}
               />
             </nav>
           </div>
@@ -307,16 +332,31 @@ const Navigate = () => {
             <div className="bg-emerald-deep/50 backdrop-blur-sm p-4 rounded-lg border border-lime/30">
               <div className="text-lime font-semibold mb-2">Current Coordinates</div>
               <div className="flex justify-between text-sm font-mono">
-                <span>Lat: {coordinates.lat}</span>
-                <span>Lng: {coordinates.lng}</span>
+                <span>Lat: {selectedCoordinates ? selectedCoordinates.lat : coordinates.lat}</span>
+                <span>Lng: {selectedCoordinates ? selectedCoordinates.lng : coordinates.lng}</span>
               </div>
             </div>
             
             <button 
               className="w-full flex items-center justify-center gap-2 p-3 rounded-lg bg-lime/80 hover:bg-lime text-emerald-deep font-semibold transition-colors duration-300"
-              onClick={() => { handleMetricsClick(); handlePredictionsClick(); }}
+              onClick={async () => {
+                try {
+                  const metricsResponse = await fetch('http://localhost:5000/api/metrics');
+                  const metrics = await metricsResponse.json();
+                  setMetricsData(metrics);
+
+                  const projectionsResponse = await fetch('http://localhost:5000/api/projections');
+                  const projections = await projectionsResponse.json();
+                  setProjectionsData(projections);
+
+                  setDataReceived(true);
+                  openModal('Data Status', <p>Data successfully received from backend!</p>);
+                } catch (error) {
+                  console.error('Error fetching initial data:', error);
+                  openModal('Data Status', <p>Failed to receive data. Please check backend server.</p>);
+                }
+              }}
             >
-              <span className="material-icons">send</span>
               <span>Get Data</span>
             </button>
             
