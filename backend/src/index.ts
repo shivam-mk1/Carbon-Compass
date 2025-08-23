@@ -11,7 +11,7 @@ const port = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
-// Dummy data for now
+// Dummy data
 const dummyMetrics = {
     pm2_5: 45,
     pm10: 78,
@@ -34,7 +34,6 @@ const dummyProjections = {
     ],
 };
 
-// Initialize Gemini API
 const geminiApiKey = process.env.GEMINI_API_KEY;
 if (!geminiApiKey) {
     console.error("GEMINI_API_KEY is not set in the environment variables.");
