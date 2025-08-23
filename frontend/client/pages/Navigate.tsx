@@ -353,11 +353,14 @@ const Navigate = () => {
               className="w-full flex items-center justify-center gap-2 p-3 rounded-lg bg-lime/80 hover:bg-lime text-emerald-deep font-semibold transition-colors duration-300"
               onClick={async () => {
                 try {
-                  const metricsResponse = await fetch('https://carbonescompass.vercel.app/api/metrics');
+                  const lat = selectedCoordinates?.lat || '';
+                  const lng = selectedCoordinates?.lng || '';
+
+                  const metricsResponse = await fetch(`https://carbonescompass.vercel.app/api/metrics?lat=${lat}&lng=${lng}`);
                   const metrics = await metricsResponse.json();
                   setMetricsData(metrics);
 
-                  const projectionsResponse = await fetch('https://carbonescompass.vercel.app/api/projections');
+                  const projectionsResponse = await fetch(`https://carbonescompass.vercel.app/api/projections?lat=${lat}&lng=${lng}`);
                   const projections = await projectionsResponse.json();
                   setProjectionsData(projections);
 

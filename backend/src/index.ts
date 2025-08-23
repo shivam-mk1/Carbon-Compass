@@ -43,11 +43,21 @@ const genAI = new GoogleGenerativeAI(geminiApiKey);
 
 // API Routes
 app.get('/api/metrics', (req, res) => {
-    res.json(dummyMetrics);
+    const { lat, lng } = req.query;
+    if (lat && lng) {
+        res.json({ message: `Metrics for latitude: ${lat}, longitude: ${lng} (data generation not implemented yet)` });
+    } else {
+        res.json(dummyMetrics);
+    }
 });
 
 app.get('/api/projections', (req, res) => {
-    res.json(dummyProjections);
+    const { lat, lng } = req.query;
+    if (lat && lng) {
+        res.json({ message: `Projections for latitude: ${lat}, longitude: ${lng} (data generation not implemented yet)` });
+    } else {
+        res.json(dummyProjections);
+    }
 });
 
 app.get('/api/policies', async (req, res) => {
