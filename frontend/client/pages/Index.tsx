@@ -1,11 +1,11 @@
 import Navigation from '@/components/Navigation';
-import { 
+import {
   Navigation as CompassIcon,
-  Radar, 
-  Route, 
-  Satellite, 
-  Activity, 
-  Wind, 
+  Radar,
+  Route,
+  Satellite,
+  Activity,
+  Wind,
   Zap,
   MapPin,
   BarChart3,
@@ -30,7 +30,7 @@ import { useNavigate } from 'react-router-dom';
 // Animated counter component
 const AnimatedCounter = ({ end, duration = 2000, suffix = "" }: { end: number; duration?: number; suffix?: string }) => {
   const [count, setCount] = useState(0);
-  
+
   useEffect(() => {
     let startTime: number;
     const animate = (currentTime: number) => {
@@ -43,7 +43,7 @@ const AnimatedCounter = ({ end, duration = 2000, suffix = "" }: { end: number; d
     };
     requestAnimationFrame(animate);
   }, [end, duration]);
-  
+
   return <span>{count.toLocaleString()}{suffix}</span>;
 };
 
@@ -158,39 +158,66 @@ const CarbonCompass = ({ size = 'medium', pointToGreen = true }: { size?: 'small
 };
 
 export default function Index() {
-  const [currentMetric, setCurrentMetric] = useState(0);
-  const [isVisible, setIsVisible] = useState(false);
-  const [compassBearing, setCompassBearing] = useState(45);
+  const [co2Emission, setCo2Emission] = useState<number | null>(null);
+  const [policies, setPolicies] = useState<string[]>([]);
+  const [loadingMetrics, setLoadingMetrics] = useState(true);
+  const [loadingPolicies, setLoadingPolicies] = useState(true);
   const navigate = useNavigate();
-  
-  const keyMetrics = [
-    { value: 2847, label: "Current Emission Coordinates", color: "text-red-400", bearing: "SW" },
-    { value: 23, label: "Commission Progress", color: "text-lime", suffix: "%", bearing: "NE" },
-    { value: 156, label: "Cities Navigated", color: "text-electric", bearing: "N" },
-  ];
 
+  // Fetch CO2 Metrics
   useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentMetric(prev => (prev + 1) % keyMetrics.length);
-      setCompassBearing(prev => (prev + 30) % 360);
-    }, 3000);
-    return () => clearInterval(interval);
+    const fetchMetrics = async () => {
+      try {
+        // Using dummy lat/lng for now, ideally these would come from user input or geolocation
+        const lat = 28.7041;
+        const lng = 77.1025;
+        const response = await fetch(`/api/metrics?lat=${lat}&lng=${lng}`);
+        const data = await response.json();
+        if (data && typeof data.co2_emissions === 'number') {
+          setCo2Emission(data.co2_emissions);
+        } else {
+          // Fallback to dummy data if API fails or returns unexpected format
+          setCo2Emission(100); // Dummy CO2 emission
+        }
+      } catch (error) {
+        console.error("Error fetching CO2 metrics:", error);
+        setCo2Emission(100); // Dummy CO2 emission on error
+      } finally {
+        setLoadingMetrics(false);
+      }
+    };
+    fetchMetrics();
   }, []);
 
+  // Fetch Policies based on CO2 Metrics
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => setIsVisible(entry.isIntersecting),
-      { threshold: 0.1 }
-    );
-    const element = document.getElementById('metrics');
-    if (element) observer.observe(element);
-    return () => observer.disconnect();
-  }, []);
+    if (co2Emission !== null) {
+      const fetchPolicies = async () => {
+        try {
+          const response = await fetch(`/api/policies?co2_level=${co2Emission}`);
+          const data = await response.json();
+          if (Array.isArray(data)) {
+            setPolicies(data);
+          } else if (typeof data === 'string') {
+            setPolicies([data]); // If Gemini returns a single string, wrap it in an array
+          } else {
+            setPolicies(["No specific policies generated for this CO2 level."]);
+          }
+        } catch (error) {
+          console.error("Error fetching policies:", error);
+          setPolicies(["Failed to load policies. Please try again later."]);
+        } finally {
+          setLoadingPolicies(false);
+        }
+      };
+      fetchPolicies();
+    }
+  }, [co2Emission]);
 
   return (
     <div className="min-h-screen bg-black text-white overflow-x-hidden">
       <Navigation />
-      
+
       {/* Hero Section */}
       <section id="home" className="relative min-h-screen flex items-center justify-center gradient-dark">
         {/* Constellation Background */}
@@ -203,7 +230,7 @@ export default function Index() {
           <ConstellationStar x={70} y={60} size={2} delay={2.5} />
           <ConstellationStar x={30} y={50} size={3} delay={1} />
           <ConstellationStar x={85} y={40} size={2} delay={2} />
-          
+
           {/* Constellation lines */}
           <svg className="absolute inset-0 w-full h-full">
             <line x1="10%" y1="20%" x2="50%" y2="30%" stroke="rgba(0, 212, 255, 0.3)" strokeWidth="1" />
@@ -212,24 +239,24 @@ export default function Index() {
             <line x1="20%" y1="80%" x2="30%" y2="50%" stroke="rgba(0, 212, 255, 0.3)" strokeWidth="1" />
           </svg>
         </div>
-        
-        
+
+
         <div className="relative z-10 text-center max-w-6xl mx-auto px-6 pt-24 lg:pt-32">
-          
+
           <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold font-montserrat mb-6 leading-tight">
             Navigate Your City Toward <br />
             <span className="text-lime">Carbon Neutrality</span>
           </h1>
-          
+
           <p className="text-xl md:text-2xl lg:text-3xl text-gray-300 mb-4 max-w-4xl mx-auto font-light leading-relaxed">
             Your trusted compass for emission tracking, prediction, and reduction strategies
           </p>
-          
+
           <div className="text-2xl md:text-3xl text-electric mb-8 font-bold">
             <span className="hindi-english">Emission Ka Commission</span> 💸
           </div>
-        
-          
+
+
           <button onClick={() => navigate('/navigate')} className="group bg-lime hover:bg-lime/90 text-emerald-deep font-bold py-4 px-8 text-lg rounded-lg transition-all duration-300 hover:scale-105 animate-pulse-glow inline-flex items-center gap-2 font-montserrat">
             Start Navigation
             <CompassIcon className="h-5 w-5 group-hover:rotate-12 transition-transform duration-300" />
@@ -237,8 +264,67 @@ export default function Index() {
         </div>
       </section>
 
-      {/* Core Features Section */}
-      <section id="navigate" className="py-20 lg:py-32 bg-emerald-deep/20">
+      {/* CO2 Metrics Section */}
+      <section id="metrics" className="py-20 lg:py-32 bg-emerald-deep/20">
+        <div className="max-w-7xl mx-auto px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold font-montserrat mb-6">
+              Current <span className="text-lime">CO2 Emissions</span>
+            </h2>
+            <p className="text-xl text-gray-300 max-w-3xl mx-auto">
+              Real-time insights into your city's carbon footprint.
+            </p>
+          </div>
+
+          <div className="flex justify-center items-center">
+            {loadingMetrics ? (
+              <p className="text-electric text-lg">Loading CO2 metrics...</p>
+            ) : (
+              <div className="glass rounded-2xl p-8 text-center">
+                <h3 className="text-2xl font-bold font-montserrat mb-4 text-white">Predicted CO2 PPM</h3>
+                <p className="text-lime text-6xl font-bold font-mono">
+                  <AnimatedCounter end={co2Emission || 0} suffix="ppm" />
+                </p>
+                <p className="text-gray-400 mt-4">
+                  This value represents the predicted CO2 levels in parts per million.
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* Policy Recommendations Section */}
+      <section id="policies" className="py-20 lg:py-32 network-bg">
+        <div className="max-w-7xl mx-auto px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold font-montserrat mb-6">
+              Policy <span className="text-lime">Recommendations</span>
+            </h2>
+            <p className="text-xl text-gray-300 max-w-3xl mx-auto">
+              Guidance for urban carbon management based on current CO2 levels.
+            </p>
+          </div>
+
+          <div className="flex justify-center">
+            {loadingPolicies ? (
+              <p className="text-electric text-lg">Generating policies...</p>
+            ) : (
+              <ul className="list-disc list-inside text-left text-gray-300 space-y-3 max-w-2xl">
+                {policies.map((policy, index) => (
+                  <li key={index} className="flex items-start">
+                    <CheckCircle className="h-5 w-5 text-lime mr-2 mt-1 flex-shrink-0" />
+                    <span>{policy}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* Core Features Section (renamed from navigate to avoid ID conflict) */}
+      <section id="core-features" className="py-20 lg:py-32 bg-emerald-deep/20">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold font-montserrat mb-6">
@@ -248,7 +334,7 @@ export default function Index() {
               Chart your course to carbon neutrality with precision navigation tools and AI-powered guidance.
             </p>
           </div>
-          
+
           <div className="grid md:grid-cols-3 gap-8 lg:gap-12">
             {/* Navigate */}
             <div className="group glass rounded-2xl p-8 hover:scale-105 transition-all duration-300 hover:border-lime/30 relative">
@@ -337,7 +423,7 @@ export default function Index() {
               Navigating 500+ data coordinates across urban infrastructure with compass precision.
             </p>
           </div>
-          
+
           <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
             {/* 3D Compass Center with Data Flows */}
             <div className="relative">
@@ -347,7 +433,7 @@ export default function Index() {
                   <div className="text-lime font-bold text-xl">Navigation Hub</div>
                   <div className="text-electric text-sm">Data Coordinates</div>
                 </div>
-                
+
                 {/* Data Source Icons with Compass Bearings */}
                 <div className="absolute inset-0">
                   {/* North - Satellite */}
@@ -357,7 +443,7 @@ export default function Index() {
                     </div>
                     <div className="text-xs text-electric font-bold">N</div>
                   </div>
-                  
+
                   {/* East - IoT Sensors */}
                   <div className="absolute top-1/2 right-8 transform -translate-y-1/2 flex flex-col items-center">
                     <div className="w-12 h-12 bg-lime/20 rounded-full flex items-center justify-center animate-float mb-2" style={{ animationDelay: '1s' }}>
@@ -365,7 +451,7 @@ export default function Index() {
                     </div>
                     <div className="text-xs text-lime font-bold">E</div>
                   </div>
-                  
+
                   {/* South - Traffic Monitor */}
                   <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex flex-col items-center">
                     <div className="w-12 h-12 bg-electric/20 rounded-full flex items-center justify-center animate-float mb-2" style={{ animationDelay: '2s' }}>
@@ -373,7 +459,7 @@ export default function Index() {
                     </div>
                     <div className="text-xs text-electric font-bold">S</div>
                   </div>
-                  
+
                   {/* West - Air Quality */}
                   <div className="absolute top-1/2 left-8 transform -translate-y-1/2 flex flex-col items-center">
                     <div className="w-12 h-12 bg-lime/20 rounded-full flex items-center justify-center animate-float mb-2" style={{ animationDelay: '0.5s' }}>
@@ -382,7 +468,7 @@ export default function Index() {
                     <div className="text-xs text-lime font-bold">W</div>
                   </div>
                 </div>
-                
+
                 {/* Compass bearing lines */}
                 <div className="absolute inset-0">
                   <div className="absolute top-20 left-1/2 w-px h-20 bg-gradient-to-b from-electric/60 to-transparent transform -translate-x-1/2"></div>
@@ -392,7 +478,7 @@ export default function Index() {
                 </div>
               </div>
             </div>
-            
+
             <div>
               <div className="space-y-6 mb-8">
                 <div className="flex items-center gap-4">
@@ -424,7 +510,7 @@ export default function Index() {
                   <span className="text-gray-300">Air quality compass monitoring</span>
                 </div>
               </div>
-              
+
               <div className="bg-lime/10 rounded-lg p-4 border border-lime/30">
                 <p className="text-lime font-semibold flex items-center gap-2">
                   <Crosshair className="h-5 w-5" />
@@ -436,7 +522,6 @@ export default function Index() {
         </div>
       </section>
 
-      
       {/* Footer */}
       <footer className="py-12 bg-black border-t border-lime/20">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
