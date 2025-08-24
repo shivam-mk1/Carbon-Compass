@@ -56,6 +56,7 @@ app.get('/api/metrics', (req, res) => {
 app.get('/api/projections', (req, res) => {
     res.json(dummyProjections);
 });
+
 app.get('/api/policies', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const model = genAI.getGenerativeModel({ model: "gemini-pro" });

@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import axios from 'axios'; // Added axios import
 
 dotenv.config();
 
@@ -13,12 +14,7 @@ app.use(express.json());
 
 // Dummy data
 const dummyMetrics = {
-    pm2_5: 45,
-    pm10: 78,
-    nox: 12,
-    co: 3,
-    ozone: 65,
-    so2: 5
+    co2_emissions: 100 // Only CO2 emissions for dummy data
 };
 
 const dummyProjections = {
@@ -42,10 +38,27 @@ if (!geminiApiKey) {
 const genAI = new GoogleGenerativeAI(geminiApiKey);
 
 // API Routes
-app.get('/api/metrics', (req, res) => {
+app.get('/api/metrics', async (req, res) => { // Made async
     const { lat, lng } = req.query;
     if (lat && lng) {
-        res.json({ message: `Metrics for latitude: ${lat}, longitude: ${lng} (data generation not implemented yet)` });
+        try {
+            const currentDate = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+            const externalApiUrl = `https://carbon-compass.onrender.com/api/projections?latitude=${lat}&longitude=${lng}&date=${currentDate}`;
+            const response = await axios.get(externalApiUrl);
+
+            // Extract predicted_co2_ppm from the response
+            const co2Emissions = response.data?.predicted_co2_ppm;
+
+            if (co2Emissions !== undefined && co2Emissions !== null) {
+                res.json({ co2_emissions: co2Emissions });
+            } else {
+                console.warn("External API did not return predicted_co2_ppm. Sending dummy data.");
+                res.json(dummyMetrics);
+            }
+        } catch (error) {
+            console.error("Error fetching data from external API:", error);
+            res.json(dummyMetrics); // Send dummy data on error
+        }
     } else {
         res.json(dummyMetrics);
     }
@@ -63,7 +76,19 @@ app.get('/api/projections', (req, res) => {
 app.get('/api/policies', async (req, res) => {
     try {
         const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-        const prompt = "Generate 5 concise policy recommendations for urban carbon management. Each recommendation should be a single sentence.";
+        let prompt = "";
+        const co2Level = parseFloat(req.query.co2_level as string);
+
+        if (!isNaN(co2Level)) {
+            if (co2Level >= 350 && co2Level <= 400) {
+                prompt = "The current CO2 levels are within a safe range (350-400ppm). Generate a positive message acknowledging this and briefly explain why these levels are considered good for urban carbon management.";
+            } else {
+                prompt = `The current CO2 level is ${co2Level}ppm. Generate 5 concise policy recommendations for urban carbon management to address this level. Each recommendation should be a single sentence.`;
+            }
+        } else {
+            prompt = "Generate 5 concise policy recommendations for urban carbon management. Each recommendation should be a single sentence.";
+        }
+
         const result = await model.generateContent(prompt);
         const response = await result.response;
         const text = response.text();
